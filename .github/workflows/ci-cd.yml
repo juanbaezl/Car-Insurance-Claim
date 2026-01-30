@@ -57,9 +57,9 @@ jobs:
           poetry run ruff format --check .
 
       # Validation 2: Security (Bandit)
-      # We target 'src' to be consistent with your local setup
+      # We target 'app' to be consistent with your local setup
       - name: Security Check (Bandit)
-        run: poetry run bandit -r src -c pyproject.toml
+        run: poetry run bandit -r app -c pyproject.toml
 
       # Validation 3: Unit Tests (Pytest)
       - name: Run Tests

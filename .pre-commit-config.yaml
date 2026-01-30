@@ -22,7 +22,8 @@ repos:
     rev: 1.9.3
     hooks:
       - id: bandit
-        args: ["-r", "src", "-c", "pyproject.toml"]
+        args: ["-c", "pyproject.toml"]
+        exclude: ^tests/ # Exclude tests/ directory from Bandit checks
 
   # 4. Poetry (Dependency Management)
   - repo: https://github.com/python-poetry/poetry
