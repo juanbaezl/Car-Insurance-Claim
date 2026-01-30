@@ -45,6 +45,7 @@ addopts = "-ra -q --cov=app --cov-report=term-missing"
 testpaths = [
     "tests",
 ]
+python_files = ["test_*.py"]
 
 [tool.bandit]
 skips = ["B101"]
