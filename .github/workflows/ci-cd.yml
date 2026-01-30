@@ -1,0 +1,102 @@
+name: CI/CD Pipeline
+
+on:
+  # 1. When pushing to main or dev branches
+  push:
+    branches: ["main", "dev"]
+  # 2. When opening a Pull Request to dev
+  pull_request:
+    branches: ["dev"]
+
+env:
+  PYTHON_VERSION: "3.11.4"
+  POETRY_VERSION: "2.3.1"
+
+jobs:
+  # ------------------------------------------------------------------
+  # JOB 1: CODE QUALITY AND TESTS (CI)
+  # Runs on PRs and Pushes
+  # ------------------------------------------------------------------
+  code-quality:
+    name: Code Quality & Tests
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+
+      - name: Install Poetry
+        uses: snok/install-poetry@v1
+        with:
+          version: ${{ env.POETRY_VERSION }}
+          virtualenvs-create: true
+          virtualenvs-in-project: true
+
+      # If cached venv exists, load it to speed up installs
+      - name: Load cached venv
+        id: cached-poetry-dependencies
+        uses: actions/cache@v4
+        with:
+          path: .venv
+          key: venv-${{ runner.os }}-${{ hashFiles('**/poetry.lock') }}
+
+      - name: Install dependencies
+        if: steps.cached-poetry-dependencies.outputs.cache-hit != 'true'
+        run: poetry install --no-interaction --no-root
+
+      # Validation 1: Style and Format (Ruff)
+      - name: Lint & Format Check (Ruff)
+        run: |
+          # Check for linter errors
+          poetry run ruff check .
+          # Check that the code is formatted (fails if not)
+          poetry run ruff format --check .
+
+      # Validation 2: Security (Bandit)
+      # We target 'src' to be consistent with your local setup
+      - name: Security Check (Bandit)
+        run: poetry run bandit -r src -c pyproject.toml
+
+      # Validation 3: Unit Tests (Pytest)
+      - name: Run Tests
+        run: poetry run pytest
+
+  # ------------------------------------------------------------------
+  # JOB 2: BUILD DOCKER AND SCAN (CD)
+  # Only runs on Pushes to main/dev
+  # ------------------------------------------------------------------
+  build-and-secure:
+    name: Build & Security Scan
+    needs: code-quality # Dependency: If CI fails, we don't build
+    if: github.event_name == 'push' # Avoid running on PRs to save costs
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      # Build the image using the Production Dockerfile
+      - name: Build Docker Image
+        run: |
+          docker build \
+            -f docker/prod.Dockerfile \
+            -t insurance-scoring:${{ github.sha }} \
+            .
+
+      # CONTAINER VULNERABILITY SCAN (Trivy)
+      # This scans the base OS (Debian/Alpine) and system libraries
+      - name: Container Security Scan (Trivy)
+        uses: aquasecurity/trivy-action@master
+        with:
+          image-ref: "insurance-scoring:${{ github.sha }}"
+          format: "table"
+          exit-code: "1" # Fails the pipeline if critical vulnerabilities are found
+          ignore-unfixed: true
+          vuln-type: "os,library"
+          severity: "CRITICAL,HIGH"

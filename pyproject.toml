@@ -1,0 +1,61 @@
+[project]
+name = "car-insurance-claim"
+version = "0.0.1"
+description = "End-to-end Machine Learning pipeline for Insurance Risk Scoring and Claims Prediction. Includes Azure architecture design, Power BI business dashboards, and optimized underwriting strategies."
+authors = [
+    {name = "juanbaezl",email = "juanbaez695@gmail.com"}
+]
+readme = "README.md"
+requires-python = ">=3.11, <3.12"
+dependencies = [
+    "pre-commit (>=4.5.1,<5.0.0)"
+]
+
+
+[build-system]
+requires = ["poetry-core>=2.0.0,<3.0.0"]
+build-backend = "poetry.core.masonry.api"
+
+[dependency-groups]
+dev = [
+    "ruff (>=0.14.14,<0.15.0)",
+    "bandit (>=1.9.3,<2.0.0)",
+    "pytest (>=9.0.2,<10.0.0)",
+    "pytest-cov (>=7.0.0,<8.0.0)"
+]
+
+[tool.ruff]
+line-length = 88
+target-version = "py311"
+
+[tool.ruff.lint]
+# Rules to activate: E (Error), W (Warning), F (Pyflakes), I (Isort - Sort imports), B (Bugbear), UP (Pyupgrade)
+select = ["E", "W", "F", "I", "B", "UP"]
+ignore = []
+
+[tool.ruff.format]
+quote-style = "double"
+
+[tool.pytest.ini_options]
+minversion = "6.0"
+# -ra to show extra test summary info for skipped, failed, etc.
+# -q for quiet mode
+# --cov to measure code coverage
+addopts = "-ra -q --cov=app --cov-report=term-missing"
+testpaths = [
+    "tests",
+]
+
+[tool.bandit]
+skips = ["B101"]
+exclude-dirs = [
+    ".venv",
+    "venv",
+    ".git",
+    ".idea",
+    ".vscode",
+    "__pycache__",
+    "tests",
+    "dist",
+    "build"
+]
