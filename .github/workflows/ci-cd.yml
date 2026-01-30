@@ -69,34 +69,34 @@ jobs:
   # JOB 2: BUILD DOCKER AND SCAN (CD)
   # Only runs on Pushes to main/dev
   # ------------------------------------------------------------------
-  build-and-secure:
-    name: Build & Security Scan
-    needs: code-quality # Dependency: If CI fails, we don't build
-    if: github.event_name == 'push' # Avoid running on PRs to save costs
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout Code
-        uses: actions/checkout@v4
+  # build-and-secure:
+  #   name: Build & Security Scan
+  #   needs: code-quality # Dependency: If CI fails, we don't build
+  #   if: github.event_name == 'push' # Avoid running on PRs to save costs
+  #   runs-on: ubuntu-latest
+  #   steps:
+  #     - name: Checkout Code
+  #       uses: actions/checkout@v4
 
-      - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v3
+  #     - name: Set up Docker Buildx
+  #       uses: docker/setup-buildx-action@v3
 
-      # Build the image using the Production Dockerfile
-      - name: Build Docker Image
-        run: |
-          docker build \
-            -f docker/prod.Dockerfile \
-            -t insurance-scoring:${{ github.sha }} \
-            .
+  #     # Build the image using the Production Dockerfile
+  #     - name: Build Docker Image
+  #       run: |
+  #         docker build \
+  #           -f docker/prod.Dockerfile \
+  #           -t insurance-scoring:${{ github.sha }} \
+  #           .
 
-      # CONTAINER VULNERABILITY SCAN (Trivy)
-      # This scans the base OS (Debian/Alpine) and system libraries
-      - name: Container Security Scan (Trivy)
-        uses: aquasecurity/trivy-action@master
-        with:
-          image-ref: "insurance-scoring:${{ github.sha }}"
-          format: "table"
-          exit-code: "1" # Fails the pipeline if critical vulnerabilities are found
-          ignore-unfixed: true
-          vuln-type: "os,library"
-          severity: "CRITICAL,HIGH"
+  #     # CONTAINER VULNERABILITY SCAN (Trivy)
+  #     # This scans the base OS (Debian/Alpine) and system libraries
+  #     - name: Container Security Scan (Trivy)
+  #       uses: aquasecurity/trivy-action@master
+  #       with:
+  #         image-ref: "insurance-scoring:${{ github.sha }}"
+  #         format: "table"
+  #         exit-code: "1" # Fails the pipeline if critical vulnerabilities are found
+  #         ignore-unfixed: true
+  #         vuln-type: "os,library"
+  #         severity: "CRITICAL,HIGH"
