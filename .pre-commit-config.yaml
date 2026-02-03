@@ -1,0 +1,31 @@
+repos:
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v4.5.0
+    hooks:
+      - id: trailing-whitespace
+      - id: end-of-file-fixer
+      - id: check-yaml
+      - id: check-toml
+
+  # 2. Ruff (Linter and Formatter)
+  - repo: https://github.com/astral-sh/ruff-pre-commit
+    rev: v0.14.14
+    hooks:
+      - id: ruff
+        args: [--fix]
+      - id: ruff-format
+
+  # 3. Bandit (Security Linter)
+  - repo: https://github.com/PyCQA/bandit
+    rev: 1.9.3
+    hooks:
+      - id: bandit
+        args: ["-c", "pyproject.toml"]
+        exclude: ^tests/ # Exclude tests/ directory from Bandit checks
+
+  # 4. Poetry (Dependency Management)
+  - repo: https://github.com/python-poetry/poetry
+    rev: "2.3.1"
+    hooks:
+      - id: poetry-check # Validates that pyproject.toml is valid
+      - id: poetry-lock # Ensures that poetry.lock is synchronized with pyproject.toml
